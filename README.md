@@ -1,4 +1,4 @@
-﻿# Dockerized Flask App → GitHub Container Registry (GHCR)
+﻿# Dockerized Flask App to GitHub Container Registry (GHCR)
 
 A Flask application containerized with Docker and automatically built and published to GitHub Container Registry using a dual-trigger GitHub Actions CI/CD pipeline.
 
@@ -13,31 +13,30 @@ A Flask application containerized with Docker and automatically built and publis
 ## Architecture
 
 ```text
-git push to main  ──────┐
-                         ├──▶  GitHub Actions  ──▶  Docker Build  ──▶  Push to GHCR
-GitHub Release published┘
+git push to main         --->  GitHub Actions  --->  Docker Build  --->  Push to GHCR
+GitHub Release published --/
 ```
 
 The pipeline is triggered two ways:
 
 | Trigger | When it fires | Image tags produced |
 |---|---|---|
-| push to main | Every commit pushed to main | latest, short commit SHA (e.g. a6b9b16) |
-| release: published | A formal GitHub Release is published | latest, semantic version (e.g. 1.0.1) |
+| push to main | Every commit pushed to main | latest, short commit SHA |
+| release: published | A formal GitHub Release is published | latest, semantic version |
 
-This mirrors how real teams separate **continuous integration** (every commit gets a traceable, pullable image) from **continuous delivery** (deliberate, versioned releases).
+This mirrors how real teams separate continuous integration (every commit gets a traceable, pullable image) from continuous delivery (deliberate, versioned releases).
 
 ## Tech Stack
 
-- **App:** Python 3.12, Flask
-- **Container:** Docker (python:3.12-slim base image)
-- **CI/CD:** GitHub Actions
-- **Registry:** GitHub Container Registry (ghcr.io)
-- **Actions used:** actions/checkout, docker/login-action, docker/metadata-action, docker/setup-buildx-action, docker/build-push-action
+- App: Python 3.12, Flask
+- Container: Docker (python:3.12-slim base image)
+- CI/CD: GitHub Actions
+- Registry: GitHub Container Registry (ghcr.io)
+- Actions used: actions/checkout, docker/login-action, docker/metadata-action, docker/setup-buildx-action, docker/build-push-action
 
 ## Run It Yourself
 
-Pull the published image directly — no build required:
+Pull the published image directly, no build required:
 
 ```bash
 docker pull ghcr.io/haseebspaniard/docker-ghcr-demo:latest
@@ -57,15 +56,17 @@ docker run -d -p 5000:5000 docker-ghcr-demo:local
 
 ## Dockerfile Design Notes
 
-requirements.txt is copied and installed **before** the rest of the application code. This orders the Docker layer cache so dependency installation is only re-run when requirements.txt actually changes — not on every code edit — significantly speeding up rebuilds.
+requirements.txt is copied and installed before the rest of the application code. This orders the Docker layer cache so dependency installation is only re-run when requirements.txt actually changes, not on every code edit, significantly speeding up rebuilds.
 
-## Debugging Log (Real Issues Hit While Building This)
+## Debugging Log
 
-1. **Workflow silently not running** — GitHub Actions only recognizes workflow files inside .github/workflows/. An early version of docker-publish.yml was accidentally placed in the repo root, which GitHub silently ignored (0 workflow runs, no error message). Fixed by moving the file to the correct path.
-2. **Windows Notepad extension trap** — Saving Dockerfile via Notepad silently appended .txt, producing an empty file that Docker couldn't find. Solved by creating files via PowerShell here-strings (Out-File -Encoding utf8 -NoNewline) instead.
-3. **Image tag mismatch** — docker/metadata-action with a semver pattern strips the leading v from release tags. Releasing v1.0.1 produced a Docker image tagged 1.0.1, not v1.0.1 — this is standard Docker/OCI convention, not a bug.
+1. Workflow silently not running: GitHub Actions only recognizes workflow files inside .github/workflows/. An early version of docker-publish.yml was accidentally placed in the repo root, which GitHub silently ignored. Fixed by moving the file to the correct path.
+2. Windows Notepad extension trap: Saving Dockerfile via Notepad silently appended .txt, producing an empty file Docker could not find. Solved by creating files via PowerShell here-strings instead.
+3. Image tag mismatch: docker/metadata-action with a semver pattern strips the leading v from release tags. Releasing v1.0.1 produced a Docker image tagged 1.0.1, not v1.0.1, which is standard Docker/OCI convention.
 
 ## Author
 
-**Abdul Haseeb** — Former CS/ICT teacher transitioning into Cloud & DevOps Engineering.
-[GitHub](https://github.com/haseebspaniard) · [LinkedIn](https://www.linkedin.com/in/abdulhaseebas) · [Medium](https://medium.com/@haseebabdul480)
+Abdul Haseeb - Former CS/ICT teacher transitioning into Cloud & DevOps Engineering.
+GitHub: https://github.com/haseebspaniard
+LinkedIn: https://www.linkedin.com/in/abdulhaseebas
+Medium: https://medium.com/@haseebabdul480
