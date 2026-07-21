@@ -11,9 +11,13 @@ A Flask application containerized with Docker and automatically built and publis
 - Debugging real CI/CD failures (workflow file placement, tag naming conventions)
 
 ## Architecture
-git push to main ──────┐
-├──▶ GitHub Actions ──▶ Docker Build ──▶ Push to GHCR
+
+```text
+git push to main  ──────┐
+                         ├──▶  GitHub Actions  ──▶  Docker Build  ──▶  Push to GHCR
 GitHub Release published┘
+```
+
 The pipeline is triggered two ways:
 
 | Trigger | When it fires | Image tags produced |
@@ -34,15 +38,23 @@ This mirrors how real teams separate **continuous integration** (every commit ge
 ## Run It Yourself
 
 Pull the published image directly — no build required:
+
+```bash
 docker pull ghcr.io/haseebspaniard/docker-ghcr-demo:latest
 docker run -d -p 5000:5000 ghcr.io/haseebspaniard/docker-ghcr-demo:latest
+```
+
 Then visit http://localhost:5000
 
 ## Run Locally From Source
+
+```bash
 git clone https://github.com/haseebspaniard/docker-ghcr-demo.git
 cd docker-ghcr-demo
 docker build -t docker-ghcr-demo:local .
 docker run -d -p 5000:5000 docker-ghcr-demo:local
+```
+
 ## Dockerfile Design Notes
 
 requirements.txt is copied and installed **before** the rest of the application code. This orders the Docker layer cache so dependency installation is only re-run when requirements.txt actually changes — not on every code edit — significantly speeding up rebuilds.
